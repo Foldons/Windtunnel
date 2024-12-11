@@ -93,6 +93,7 @@ def dragRake(Uinf, Pinf,rho, Uwake, Pwake, Upos, pPos):
 
 
 
+
 # def Drag(p_bar, p_back,rho):
 #     u_list=[]
 #     for i in range(len(p_back)):
@@ -117,8 +118,8 @@ def dragRake(Uinf, Pinf,rho, Uwake, Pwake, Upos, pPos):
 #     plt.show()
 
 if __name__ == '__main__':
-    Line= 6
-    single = False
+    Line= 18
+    single = True
     if single == False:
         AOA = []
         CL_List = []
@@ -163,11 +164,17 @@ if __name__ == '__main__':
         plt.subplot(3, 1, 1)
         plt.plot(AOA,CL_List)
         plt.grid()
+        plt.xlabel('alpha')
+        plt.ylabel("cl")
         plt.subplot(3,1,2)
         plt.plot(AOA,CM_List)
         plt.grid()
+        plt.xlabel('alpha')
+        plt.ylabel("cm")
         plt.subplot(3,1,3)
         plt.plot(CD_List,CL_List)
+        plt.xlabel('cd')
+        plt.ylabel("cl")
         plt.grid()
         plt.show()
 
@@ -210,12 +217,24 @@ if __name__ == '__main__':
         print(f"lift coefficient = {CL}")
         print(f"center of pressure = {xCP}")
         print(f"wake drag coefficient = {cdRake}")
+        print(f"Reynolds numver = {Rey:.1e}")
 
-        plt.subplot(2, 1, 1)
-        plt.plot(velocity_pos,velocity_wake)
-        plt.subplot(2,1,2)
-        plt.plot(pos,p_top)
-        plt.plot(pos2,p_bottom)
-        plt.gca().invert_yaxis()
-        plt.grid()
+        velocity = True
+        if velocity:
+            #plt.scatter(velocity_pos, velocity_wake, color='red', s=10, zorder=5)
+            plt.rcParams.update({
+                'font.size': 14,        # Set global font size
+                'font.weight': 'medium'   # Set global font weight to bold
+            })
+            plt.plot(np.array(velocity_pos)*1000,velocity_wake, 'o-', label='Experimental data', markersize=4, linewidth=1, color = 'black', markerfacecolor='orange', markeredgecolor='black')
+            plt.xlabel('Total pressure probe position [mm]', fontweight='medium')
+            plt.ylabel('Wake velocity [m/s]', fontweight='medium')
+            plt.ylim(16, 23)
+            plt.grid()
+            plt.legend(loc = 'lower right')
+        else:
+            plt.plot(pos,p_top)
+            plt.plot(pos2,p_bottom)
+            plt.gca().invert_yaxis()
+            plt.grid()
         plt.show()
