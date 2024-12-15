@@ -42,14 +42,14 @@ ax.yaxis.set_ticks_position('left')
 # Show the plot
 plt.show()
 
-#plot drag curve
+#plot drag polar 
 ##################################################################################
 
 plt.plot(drag, lift, marker='o', linestyle='-', color="red", label="3D wing")
 plt.plot(CD_List, CL_List, marker='^', linestyle='-', color="blue", label="2D wing") 
 plt.xlabel("Drag Coefficient (-)")
 plt.ylabel("Lift Coefficient (-)")
-plt.title("Drag Curve")
+plt.title("Drag Polar")
 plt.grid(True)
 plt.legend()
 ax = plt.gca()  # Get current axes
