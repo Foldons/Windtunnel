@@ -113,7 +113,7 @@ def get_plots():
         CL_List = []
         CD_List = []
         CM_List = []
-        for j in range(3, 35):
+        for j in range(3, 22):
 
             rho, viscous, U_inf, Rey, p_inf, pATM = ambient(j, List)
             p_top, pos, p_bottom, pos2, p_backtotal, backtotal, p_backstatic, backstatic = pressure(j, p_inf)
@@ -156,11 +156,12 @@ def get_plots():
 @dataclass
 class Corrections:
 
-    h = 1 # windtunnel height, m WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONG
+    h = 0.9 # windtunnel height, m WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONG
     c = 0.16 # chord length, m
     V_freestream = 20 # WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONG
     M_ref = math.sqrt(1.40 * 287 * 288.15) # mach 1 speed, m/s
     M = V_freestream / M_ref
+    t_c = 0.104
 
 
 
@@ -171,9 +172,6 @@ class Corrections:
     def get_tau(self):
         tau = (1/4) * (self.c/self.h)
         return tau
-
-    #def get_Lambda(self):
-        #for x in x_pos:
 
     def correct_Cl(self, C_l, C_d):
         Lambda = self.get_Lambda()
@@ -207,19 +205,61 @@ class Corrections:
 
     def correct_alpha(self, C_l, C_m, alpha):
         sigma = self.get_sigma()
-        alpha_corrected = alpha + ((57.3 * sigma) / (2 * math.pi * math.sqrt(1 - (M**2)))) * (C_l + 4*C_m)
+        alpha_corrected = alpha + ((57.3 * sigma) / (2 * math.pi * math.sqrt(1 - (self.M**2)))) * (C_l + 4*C_m)
         return alpha_corrected
 
+    def get_Lambda(self):
+        path_upper = os.path.join(os.getcwd(), 'Airfoil Upper.txt')
+        path_lower = os.path.join(os.getcwd(), 'Airfoil Lower.txt')
+        points_upper = np.flip(np.genfromtxt(path_upper, delimiter=''), 0)
+        points_lower = np.genfromtxt(path_lower, delimiter='')
+        slopes_upper = np.empty(len(points_upper) - 1)
+        slopes_lower = np.empty(len(points_lower) - 1)
 
+        for i in range(0, len(slopes_upper)):
+            dy = points_upper[i + 1][1] - points_upper[i][1]
+            dx = points_upper[i + 1][0] - points_upper[i][0]
+            slope = dy / dx
+            slopes_upper[i] = slope
+
+        for i in range(0, len(slopes_lower)):
+            dy = points_lower[i + 1][1] - points_lower[i][1]
+            dx = points_lower[i + 1][0] - points_lower[i][0]
+            slope = dy / dx
+            slopes_lower[i] = slope
+
+        return 0.200
 
 if __name__ == '__main__':
-    AOA, CL_List, CD_List, CM_List = get_plots()
+    AOA_List, CL_List, CD_List, CM_List = get_plots()
 
-    print(len(AOA), len(CL_List), len(CD_List), len(CM_List))
+    print(AOA_List, len(CL_List), len(CD_List), len(CM_List))
 
-    for i in range(len(AOA)):
-        AOA = Corrections.correct_alpha(CL_List[i], CM_List[i], AOA[i])
-        CL_List[i] = Corrections.correct_Cl(CL_List[i], CD_List[i])
-        CD_List[i] = Corrections.correct_Cl(CD_List[i])
-        CM_List[i] = Corrections.correct_Cl(CL_List[i], CD_List[i], CM_List[i])
+    correct = Corrections()
 
+    AOA_corrected = []
+    CL_corrected = []
+    CD_corrected = []
+    CM_corrected = []
+
+    for i in range(len(AOA_List)):
+        AOA_corrected.append(correct.correct_alpha(CL_List[i], CM_List[i], AOA_List[i]))
+        CL_corrected.append(correct.correct_Cl(CL_List[i], CD_List[i]))
+        CD_corrected.append(correct.correct_Cd(CD_List[i]))
+        CM_corrected.append(correct.correct_Cm(CL_List[i], CD_List[i], CM_List[i]))
+
+    plt.plot(AOA_corrected, CL_corrected, color = "green")
+    plt.plot(AOA_List, CL_List, color = "orange")
+    plt.show()
+
+    plt.plot(AOA_corrected, CD_corrected, color="green")
+    plt.plot(AOA_List, CD_List, color="orange")
+    plt.show()
+
+    plt.plot(AOA_corrected, CM_corrected, color="green")
+    plt.plot(AOA_List, CM_List, color="orange")
+    plt.show()
+
+    plt.plot(CD_corrected, CL_corrected, color="green")
+    plt.plot(CD_List, CL_List, color="orange")
+    plt.show()
