@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 import os
+from scipy.integrate import quad
+from scipy.interpolate import interp1d
 
 import read_windtunnel_edit_2 as windtunnel
 
@@ -146,83 +148,7 @@ def get_plots():
             CL_List.append(CL)
             CD_List.append(cdRake)
             CM_List.append(CM25)
-        plt.subplot(3, 1, 1)
-        plt.plot(AOA, CL_List)
-        plt.grid()
-        plt.xlabel('alpha')
-        plt.ylabel("cl")
-        plt.subplot(3, 1, 2)
-        plt.plot(AOA, CM_List)
-        plt.grid()
-        plt.xlabel('alpha')
-        plt.ylabel("cm")
-        plt.subplot(3, 1, 3)
-        plt.plot(CD_List, CL_List)
-        plt.xlabel('cd')
-        plt.ylabel("cl")
-        plt.grid()
-        plt.show()
 
-    if single == True:
-
-        rho, viscous, U_inf, Rey, p_inf, pATM = ambient(Line, List)
-        p_top, pos, p_bottom, pos2, p_backtotal, backtotal, p_backstatic, backstatic = pressure(Line, p_inf)
-
-        for i in range(len(pos)):
-            p_top[i] = (p_top[i] - p_inf) / (0.5 * rho * U_inf ** 2)
-        for i in range(len(pos2)):
-            p_bottom[i] = (p_bottom[i] - p_inf) / (0.5 * rho * U_inf ** 2)
-        for i in range(len(backtotal)):
-            cpt = (p_backtotal[i] - p_inf) / (0.5 * rho * U_inf ** 2)
-            if cpt > 1: cpt = 1
-            p_backtotal[i] = cpt * 0.5 * rho * U_inf ** 2 + p_inf
-
-        backstatic_interpd = interp1d(staticWakemm, p_backstatic, bounds_error=False, fill_value="extrapolate")
-        velocity_wake = []
-        velocity_pos = []
-        for i, x in enumerate(totalWakemm):
-            if x < staticWakemm[0] or x > staticWakemm[-1]: continue
-            vw = (2 * (p_backtotal[i] - backstatic_interpd(x)) / rho) ** 0.5
-            velocity_wake.append(vw)
-            velocity_pos.append(x)
-
-        CN = cn(p_top, p_bottom, airfoilUpperPerc, airfoilLowerPerc)
-        CM = cm(p_top, p_bottom, airfoilUpperPerc, airfoilLowerPerc)
-        CM25 = CM + 0.25 * CN
-        xCP = -CM / CN
-        cdRake = dragRake(U_inf, p_inf, rho, velocity_wake, p_backstatic, velocity_pos, staticWakemm)
-        alpha = List[Line, 2]
-        ar = np.deg2rad(alpha)
-        CL = CN * (np.cos(ar) + (np.sin(ar) ** 2) / np.cos(ar)) - cdRake * np.tan(ar)
-
-        print(f"AOA = {alpha}")
-        print(f"normal coefficient = {CN}")
-        print(f"moment coefficient = {CM25}")
-        print(f"lift coefficient = {CL}")
-        print(f"center of pressure = {xCP}")
-        print(f"wake drag coefficient = {cdRake}")
-        print(f"Reynolds numver = {Rey:.1e}")
-
-        velocity = True
-        if velocity:
-            # plt.scatter(velocity_pos, velocity_wake, color='red', s=10, zorder=5)
-            plt.rcParams.update({
-                'font.size': 14,  # Set global font size
-                'font.weight': 'medium'  # Set global font weight to bold
-            })
-            plt.plot(np.array(velocity_pos) * 1000, velocity_wake, 'o-', label='Experimental data', markersize=4,
-                     linewidth=1, color='black', markerfacecolor='orange', markeredgecolor='black')
-            plt.xlabel('Total pressure probe position [mm]', fontweight='medium')
-            plt.ylabel('Wake velocity [m/s]', fontweight='medium')
-            plt.ylim(16, 23)
-            plt.grid()
-            plt.legend(loc='lower right')
-        else:
-            plt.plot(pos, p_top)
-            plt.plot(pos2, p_bottom)
-            plt.gca().invert_yaxis()
-            plt.grid()
-        plt.show()
 
         return AOA, CL_List, CD_List, CM_List
 
@@ -249,26 +175,51 @@ class Corrections:
     #def get_Lambda(self):
         #for x in x_pos:
 
-    #def correct_Cl(self):
-
-    def correct_Cd(self, c_d):
+    def correct_Cl(self, C_l, C_d):
         Lambda = self.get_Lambda()
         tau = self.get_tau()
         sigma = self.get_sigma()
-        part_1 = ((3 - 0.6(self.M**2)) / ((1 - (self.M**2))**(3/2))) * Lambda * sigma
-        part_2 = (((2 - (self.M**2)) * (1 + 0.4*(self.M**2))) / (1 - (self.M**2))) * tau * c_d
-        c_d_corrected = c_d * (1 - part_1 - part_2)
+        part_1 = (sigma / (1 - (self.M**2)))
+        part_2 = ((2 - (self.M**2)) / ((1 - (self.M**2))**(3/2)))  * Lambda * sigma
+        part_3 = (((2 - (self.M**2)) * (1 + 0.4*(self.M**2))) / (1 - (self.M**2))) * tau * C_d
+        C_l_corrected = C_l * (1 - part_1 - part_2 - part_3)
+        return C_l_corrected
+
+    def correct_Cd(self, C_d):
+        Lambda = self.get_Lambda()
+        tau = self.get_tau()
+        sigma = self.get_sigma()
+        part_1 = ((3 - 0.6 * (self.M**2)) / ((1 - (self.M**2))**(3/2))) * Lambda * sigma
+        part_2 = (((2 - (self.M**2)) * (1 + 0.4*(self.M**2))) / (1 - (self.M**2))) * tau * C_d
+        c_d_corrected = C_d * (1 - part_1 - part_2)
         return c_d_corrected
 
-    #def correct_Cm(self):
+    def correct_Cm(self, C_l, C_d, C_m):
+        tau = self.get_tau()
+        sigma = self.get_sigma()
+        Lambda = self.get_Lambda()
+        part_1 = ((2 - (self.M**2)) / ((1 - (self.M**2))**(3/2)))  * Lambda * sigma
+        part_2 = (((2 - (self.M**2)) * (1 + 0.4*(self.M**2))) / (1 - (self.M**2))) * tau * C_d
+        part_3 = C_l * (sigma / (4 * (1 - (self.M**2))))
+        C_m_corrected = C_m * (1 - part_1 - part_2) + part_3
+        return C_m_corrected
 
 
-    #def correct_alpha(self):
-
-
+    def correct_alpha(self, C_l, C_m, alpha):
+        sigma = self.get_sigma()
+        alpha_corrected = alpha + ((57.3 * sigma) / (2 * math.pi * math.sqrt(1 - (M**2)))) * (C_l + 4*C_m)
+        return alpha_corrected
 
 
 
 if __name__ == '__main__':
     AOA, CL_List, CD_List, CM_List = get_plots()
+
+    print(len(AOA), len(CL_List), len(CD_List), len(CM_List))
+
+    for i in range(len(AOA)):
+        AOA = Corrections.correct_alpha(CL_List[i], CM_List[i], AOA[i])
+        CL_List[i] = Corrections.correct_Cl(CL_List[i], CD_List[i])
+        CD_List[i] = Corrections.correct_Cl(CD_List[i])
+        CM_List[i] = Corrections.correct_Cl(CL_List[i], CD_List[i], CM_List[i])
 
