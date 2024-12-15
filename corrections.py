@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import math
 
-import read_windtunnel_edit as windtunnel
+import read_windtunnel_edit 2.py as windtunnel
 
 from dataclasses import dataclass
 
@@ -45,3 +45,4 @@ class Corrections:
 
 
 
+if __name__ == '__main__':

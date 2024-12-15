@@ -119,7 +119,7 @@ def dragRake(Uinf, Pinf,rho, Uwake, Pwake, Upos, pPos):
 
 if __name__ == '__main__':
     Line= 18
-    single = True
+    single = False
     if single == False:
         AOA = []
         CL_List = []
