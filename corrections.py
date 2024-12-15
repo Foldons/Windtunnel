@@ -156,9 +156,9 @@ def get_plots():
 @dataclass
 class Corrections:
 
-    h = 0.9 # windtunnel height, m WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONG
+    h = 0.9 # windtunnel height, m
     c = 0.16 # chord length, m
-    V_freestream = 20 # WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONG
+    V_freestream = 21.1 # WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONG
     M_ref = math.sqrt(1.40 * 287 * 288.15) # mach 1 speed, m/s
     M = V_freestream / M_ref
     t_c = 0.104
