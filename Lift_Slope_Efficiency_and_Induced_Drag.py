@@ -20,6 +20,7 @@ with open(r"raw_testG93D[1].txt") as file:
             drag.append(float(line[6])*2/(1.177*22**2*0.066146))
             
 #Fit linear regression to the linear region
+deg=alpha
 alpha=[float(i)*np.pi/180 for i in alpha]
 linear_AOA = AOA[0:9]
 linear_CL = CL_List[0:9]
@@ -37,9 +38,9 @@ slope3D, intercept3D = np.polyfit(a, c, 1)
 #Plotting the original data
 plt.plot(alpha, lift, marker='o', linestyle='-', color="red", label="3D wing")
 plt.plot(AOA, CL_List, marker='o', linestyle='-', color="blue", label="2D wing")
-plt.xlabel("Angle of Attack (rad)")
-plt.ylabel("Lift Coefficient (-)")
-plt.title("Lift Curve with Linear Fit")
+plt.xlabel("Angle of Attack (rad)",fontsize=15)
+plt.ylabel("Lift Coefficient (-)",fontsize=15)
+plt.title("Lift Curve with Linear Fit",fontsize=20)
 plt.grid(True)
 ax = plt.gca()  # Get current axes
 ax.spines['left'].set_position('zero')  # Y-axis at x=0
@@ -58,8 +59,29 @@ plt.plot(linear_AOA, slope2D * np.array(linear_AOA) + intercept2D, linestyle='--
 plt.plot(linear_alpha, slope3D * np.array(linear_alpha) + intercept3D, linestyle='--', color='purple', label=f'Linear Fit: 3D Lift Slope={slope3D:.4f}')
 
 #Show the plot
-plt.legend()
+plt.legend(fontsize=15, loc='lower right')
 plt.show() 
 
-tau=((slope2D-slope3D)*np.pi*5.255)/(slope2D*slope3D)-1
-print(tau)
+AR=(416.9*10**(-3)*2)**2/(0.066146*2)
+print(AR)
+tau=(slope2D*slope3D)/((slope2D-slope3D)*np.pi*AR)-1
+Cdi=[i**2/(np.pi*AR)*(1+0.203) for i in lift]
+
+Cd0=[drag[i]-Cdi[i] for i in range(len(drag))]
+plt.plot(drag, Cdi, marker='o', linestyle='-', color="red", label="3D wing")
+plt.xlabel("Total Drag Coefficient (-)",fontsize=15)
+plt.ylabel("Induced Drag Coeff (-)",fontsize=15)
+plt.grid(True)
+plt.show()
+
+plt.plot(Cd0, Cdi, marker='o', linestyle='-', color="red", label="3D wing")
+plt.xlabel("Profile Drag Coefficient (-)",fontsize=15)
+plt.ylabel("Induced Drag Coefficient (-)",fontsize=15)
+plt.grid(True)
+plt.show()
+
+plt.plot(deg, Cdi, marker='o', linestyle='-', color="red", label="3D wing")
+plt.xlabel("Angle of Attack (deg)",fontsize=15)
+plt.ylabel("Induced Drag Coeff (-)",fontsize=15)
+plt.grid(True)
+plt.show()
