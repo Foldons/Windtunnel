@@ -233,7 +233,7 @@ class Corrections:
 if __name__ == '__main__':
     AOA_List, CL_List, CD_List, CM_List = get_plots()
 
-    print(AOA_List, len(CL_List), len(CD_List), len(CM_List))
+    #print(AOA_List, len(CL_List), len(CD_List), len(CM_List)) #8 = 10 deg
 
     correct = Corrections()
 
@@ -248,34 +248,39 @@ if __name__ == '__main__':
         CD_corrected.append(correct.correct_Cd(CD_List[i]))
         CM_corrected.append(correct.correct_Cm(CL_List[i], CD_List[i], CM_List[i]))
 
-    plt.plot(AOA_List, CL_List, color = "blue", label = "uncorrected data", linestyle="-", marker="o")
-    plt.plot(AOA_corrected, CL_corrected, color = "red", label = "corrected data", linestyle="-", marker="^")
+    plt.plot(AOA_List, CL_List, color = "cornflowerblue", label = "uncorrected data", linestyle="-", marker="o", markersize=4, linewidth=1, markerfacecolor='cornflowerblue', markeredgecolor='black')
+    plt.plot(AOA_corrected, CL_corrected, color = "orange", label = "corrected data", linestyle="-", marker="^", markersize=4, linewidth=1, markerfacecolor='orange', markeredgecolor='black')
     plt.xlabel(r'$\alpha$ $[^\circ]$', fontweight='medium')
     plt.ylabel(r'$C_l$ [-]', fontweight='medium')
     plt.legend(loc = 'lower right')
     plt.grid()
     plt.show()
 
-    plt.plot(AOA_List, CD_List, color="blue", label = "uncorrected data", linestyle="-", marker="o")
-    plt.plot(AOA_corrected, CD_corrected, color="red", label = "corrected data", linestyle="-", marker="^")
+    plt.plot(AOA_List, CD_List, color="cornflowerblue", label = "uncorrected data", linestyle="-", marker="o", markersize=4, linewidth=1, markerfacecolor='cornflowerblue', markeredgecolor='black')
+    plt.plot(AOA_corrected, CD_corrected, color="orange", label = "corrected data", linestyle="-", marker="^", markersize=4, linewidth=1, markerfacecolor='orange', markeredgecolor='black')
     plt.xlabel(r'$\alpha$ $[^\circ]$', fontweight='medium')
     plt.ylabel(r'$C_d$ [-]', fontweight='medium')
     plt.legend(loc = 'upper left')
     plt.grid()
     plt.show()
 
-    plt.plot(AOA_List, CM_List, color="blue", label = "uncorrected data", linestyle="-", marker="o")
-    plt.plot(AOA_corrected, CM_corrected, color="red", label = "corrected data", linestyle="-", marker="^")
+    plt.plot(AOA_List, CM_List, color="cornflowerblue", label = "uncorrected data", linestyle="-", marker="o", markersize=4, linewidth=1, markerfacecolor='cornflowerblue', markeredgecolor='black')
+    plt.plot(AOA_corrected, CM_corrected, color="orange", label = "corrected data", linestyle="-", marker="^", markersize=4, linewidth=1, markerfacecolor='orange', markeredgecolor='black')
     plt.xlabel(r'$\alpha$ $[^\circ]$', fontweight='medium')
     plt.ylabel(r'$C_m$ [-]', fontweight='medium')
     plt.legend(loc = 'lower left')
     plt.grid()
     plt.show()
 
-    plt.plot(CD_List, CL_List, color="blue", label = "uncorrected data", linestyle="-", marker="o")
-    plt.plot(CD_corrected, CL_corrected, color="red", label = "corrected data", linestyle="-", marker="^")
+    plt.plot(CD_List, CL_List, color="cornflowerblue", label = "uncorrected data", linestyle="-", marker="o", markersize=4, linewidth=1, markerfacecolor='cornflowerblue', markeredgecolor='black')
+    plt.plot(CD_corrected, CL_corrected, color="orange", label = "corrected data", linestyle="-", marker="^", markersize=4, linewidth=1, markerfacecolor='orange', markeredgecolor='black')
     plt.xlabel(r'$C_d$ [-]', fontweight='medium')
     plt.ylabel(r'$C_l$ [-]', fontweight='medium')
     plt.legend(loc = 'lower right')
     plt.grid()
     plt.show()
+
+    print(f'alpha corrects from {AOA_List[8]} to {AOA_corrected[8]}, delta = {AOA_corrected[8] - AOA_List[8]}')
+    print(f'Cl corrects from {CL_List[8]} to {CL_corrected[8]}, delta = {CL_corrected[8] - CL_List[8]}')
+    print(f'Cd corrects from {CD_List[8]} to {CD_corrected[8]}, delta = {CD_corrected[8] - CD_List[8]}')
+    print(f'Cm corrects from {CM_List[8]} to {CM_corrected[8]}, delta = {CM_corrected[8] - CM_List[8]}')
